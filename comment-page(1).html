@@ -1,0 +1,198 @@
+<!-- HTML code -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Social Media Post</title>
+  <style>
+    #comment-form {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+    #comment-form label {
+      margin-bottom: 5px;
+    }
+    #comment-form input, #comment-form textarea {
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+    #comment-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .comment {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+    .comment-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .comment-timestamp {
+      font-size: 12px;
+    }
+    .comment-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px;
+    }
+    .comment-actions button {
+      margin-left: 5px;
+      padding: 2px 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="social-post">
+    <h1>Trying to decide a career path? Programming is the move. Change my mind.</h1>
+  </div>
+
+  <div id="comments">
+    <h2>Comments</h2>
+
+    <form id="comment-form">
+      <label for="name-input">Name:</label>
+      <input type="text" id="name-input" required>
+
+      <label for="comment-input">Comment:</label>
+      <textarea id="comment-input" rows="4" required></textarea>
+
+      <button type="submit">Post Comment</button>
+    </form>
+
+    <ul id="comment-list"></ul>
+  </div>
+
+  <script>
+    // JavaScript code
+    const commentForm = document.querySelector('#comment-form');
+    const commentList = document.querySelector('#comment-list');
+
+    commentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.querySelector('#name-input');
+      const commentInput = document.querySelector('#comment-input');
+
+      const newComment = {
+        name: nameInput.value,
+        comment: commentInput.value,
+        timestamp: new Date(),
+      };
+
+      addComment(newComment);
+      nameInput.value = '';
+      commentInput.value = '';
+    });
+
+    function addComment(comment) {
+      const commentHtml = `
+        <li class="comment">
+          <div class="comment-meta">
+            <span class="comment-author"><b>${comment.name}</b></span>
+            <span class="comment-timestamp">${formatTimestamp(comment.timestamp)}</span>
+          </div>
+          <div class="comment-body">
+            <p>${comment.comment}</p>
+            <div class="comment-actions">
+              <button class="edit-btn">Edit</button>
+              <button class="delete-btn">Delete</button>
+            </div>
+          </div>
+        </li>
+      `;
+
+      // Add new comment to top of the list
+      commentList.insertAdjacentHTML('afterbegin', commentHtml);
+    }
+
+    function formatTimestamp(timestamp) {
+      const options = { dateStyle: 'medium', timeStyle: 'short' };
+      return new Intl.DateTimeFormat('en-US', options).format(timestamp);
+    }
+
+        commentList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('edit-btn')) {
+        editComment(e.target.closest('.comment'));
+      } else if (e.target.classList.contains('delete-btn')) {
+        deleteComment(e.target.closest('.comment'));
+      }
+    });
+
+    function editComment(commentElement) {
+      const commentBody = commentElement.querySelector('.comment-body');
+      const commentActions = commentElement.querySelector('.comment-actions');
+
+      // Hide edit and delete buttons
+      commentActions.style.display = 'none';
+
+      // Create form for editing comment
+      const editForm = document.createElement('form');
+      editForm.innerHTML = `
+        <textarea>${commentBody.querySelector('p').textContent}</textarea>
+        <button type="submit">Save</button>
+      `;
+
+      // Replace comment text with edit form
+      commentBody.replaceChild(editForm, commentBody.querySelector('p'));
+
+      // Handle form submission
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editedComment = {
+          comment: editForm.querySelector('textarea').value,
+          timestamp: new Date(),
+        };
+        updateComment(commentElement, editedComment);
+      });
+    }
+
+    function updateComment(commentElement, editedComment) {
+      const commentBody = commentElement.querySelector('.comment-body');
+      const commentActions = commentElement.querySelector('.comment-actions');
+
+      // Show edit and delete buttons
+      commentActions.style.display = '';
+
+      // Update comment text and timestamp
+      const commentText = commentBody.querySelector('textarea').value;
+      commentBody.replaceChild(createCommentText(commentText), commentBody.querySelector('form'));
+      commentElement.querySelector('.comment-timestamp').textContent = formatTimestamp(editedComment.timestamp);
+
+      // Update comment object in memory
+      const commentIndex = Array.from(commentList.children).indexOf(commentElement);
+      comments[commentIndex].comment = commentText;
+      comments[commentIndex].timestamp = editedComment.timestamp;
+    }
+
+    function createCommentText(text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      return p;
+    }
+
+    function deleteComment(commentElement) {
+      // Remove comment element from DOM
+      commentElement.remove();
+
+      // Remove comment object from memory
+      const commentIndex = Array.from(commentList.children).indexOf(commentElement);
+      comments.splice(commentIndex, 1);
+    }
+
+    // Initialize comments array with sample data
+    let comments = []
+
+    // Sort comments array by timestamp, newest first
+    comments.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Add comments to the list
+    comments.forEach(addComment);
+  </script>
+</body>
+</html>
+
